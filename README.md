@@ -13,7 +13,7 @@
 
 ## 🏗️ 技术栈
 
-| 端   | 技术                                                                               |
+| \    | 技术                                                                               |
 |------|------------------------------------------------------------------------------------|
 | 前端 | Vue 3 · Vant 4 · Vue Router · marked + highlight.js + dompurify · Vite             |
 | 后端 | Spring Boot 4.1 · Java 26 · Lombok · Jakarta Validation · JDK HttpClient(LLM 调用) |
