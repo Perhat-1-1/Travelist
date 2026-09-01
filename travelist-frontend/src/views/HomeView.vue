@@ -103,7 +103,7 @@ const onSearch = () => {
           :key="s.id"
           :title="s.name"
           :label="s.desc"
-          style="background-color: #f7f7f7; border-radius: 8px; margin: 5px 0px 0px;"
+          style="background-color: #f7f7f7; border-radius: 8px; margin: 5px 0 0;"
           is-link
           @click="goDetail(s)"
         >
@@ -139,14 +139,6 @@ const onSearch = () => {
     overflow: hidden;
   }
 
-  .van-swipe-item {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: #fff;
-  }
-
   .banner-title {
     margin: 0;
     font-size: 26px;
@@ -165,7 +157,7 @@ const onSearch = () => {
   }
 
   .section {
-    padding: 5px 0 0px;
+    padding: 5px 0 0;
     background-color: #fff;
   }
 

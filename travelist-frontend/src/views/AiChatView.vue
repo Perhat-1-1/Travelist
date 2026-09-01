@@ -64,7 +64,7 @@ const appendUser = (text) => {
 }
 
 // 发起一轮 AI 流式回复
-const streamAI = async (userText) => {
+const streamAI = async () => {
   messages.value.push({
     id: ++msgId,
     role: 'ai',
@@ -176,11 +176,11 @@ const streamAI = async (userText) => {
 // 完整一轮:发送用户消息 → 流式回复 → 串行清空队列
 const processTurn = async (userText) => {
   appendUser(userText)
-  await streamAI(userText)
+  await streamAI()
   while (pendingQueue.value.length) {
     const next = pendingQueue.value.shift()
     appendUser(next.text)
-    await streamAI(next.text)
+    await streamAI()
   }
 }
 
@@ -308,10 +308,6 @@ onUnmounted(() => {
     margin-bottom: 14px;
     gap: 8px;
     align-items: flex-start;
-  }
-
-  .msg-row-user {
-    flex-direction: row-reverse;
   }
 
   .avatar {
@@ -447,7 +443,4 @@ onUnmounted(() => {
     background: #f7f8fa;
   }
 
-  .input-bar .van-button {
-    flex-shrink: 0;
-  }
 </style>

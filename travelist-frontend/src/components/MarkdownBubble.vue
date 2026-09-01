@@ -147,8 +147,4 @@ const html = computed(() => DOMPurify.sanitize(marked.parse(props.text)))
   border-top: 1px solid #ebedf0;
 }
 
-/* 自定义语言被识别为纯文本时的占位小字 */
-.markdown-body .hljs {
-  background: #fcfcff;
-}
 </style>
