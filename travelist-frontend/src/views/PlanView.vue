@@ -459,12 +459,6 @@
     cursor: pointer;
   }
 
-  .pill-active {
-    border-color: #1989fa;
-    color: #1989fa;
-    background: #ecf5ff;
-  }
-
   .tip {
     margin: 8px 16px 0;
     font-size: 12px;
