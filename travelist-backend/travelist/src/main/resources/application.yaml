@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: travelist
+
+server:
+  port: 5222
+
+# LLM 配置（现阶段默认调用 DeepSeek API，OpenAI 兼容）
+llm:
+  # 接口地址：DeepSeek OpenAI 兼容接口，也可带 /v1 后缀（如 https://api.deepseek.com/v1）
+  base-url: https://api.deepseek.com
+  # 模型名称：deepseek-v4-flash
+  #         deepseek-v4-pro
+  #         deepseek-v4-flash-vision-exp
+  model: deepseek-v4-flash-vision-exp
+  # API Key：从系统环境变量 DEEPSEEK_API_KEY 读取（不在仓库中保存密钥）。
+  # 设置方式（Windows 持久化）：setx DEEPSEEK_API_KEY sk-xxxx
+  # 未配置时调用接口会抛出 LLMException 提示
+  api-key: ${DEEPSEEK_API_KEY:}
+  # 调用风格：responses（默认，OpenAI Responses API，POST /responses）或 chat（Chat Completions，POST /chat/completions）
+  api-style: responses
+  # 建立连接的超时时间
+  connect-timeout: 10s
+  # 单次请求超时时间
+  timeout: 60s
+  # JDK HttpClient 默认不读取系统代理：本机通过 Clash/V2Ray 等代理上网时，
+  # 必须显式配置代理主机/端口（尤其代理开启 DNS fake-ip 时，直连会连到假 IP 而超时）
+  proxy-host: 127.0.0.1
+  proxy-port: 7892
+  # 不需要代理时可将 proxy-host 置空（proxy-port 填 0），即恢复直连

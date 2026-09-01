@@ -1,0 +1,9 @@
+/travelist-frontend/dist/
+/travelist-frontend/.vscode/
+/travelist-frontend/.idea/
+/travelist-frontend/node_modules/
+/travelist-backend/travelist/target/
+/travelist-backend/travelist/.idea/
+/travelist-frontend/package-lock.json
+/.vscode/
+/.idea/

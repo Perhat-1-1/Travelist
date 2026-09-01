@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  仅为本机开发辅助:本机通过 Clash(127.0.0.1:7892)上网且开启 DNS fake-ip 时,
+  Maven 直连中央仓库会连到假 IP 而超时。使用方式:
+    mvnw.cmd -s maven-proxy-settings.xml spring-boot:run
+  若本机无需代理,可忽略或删除本文件。
+-->
+<settings>
+  <proxies>
+    <proxy>
+      <id>clash</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>127.0.0.1</host>
+      <port>7892</port>
+      <nonProxyHosts>localhost|127.0.0.1</nonProxyHosts>
+    </proxy>
+  </proxies>
+</settings>

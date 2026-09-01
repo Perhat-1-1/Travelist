@@ -1,0 +1,24 @@
+{
+  "name": "travelist-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "dompurify": "^3.4.14",
+    "highlight.js": "^11.12.0",
+    "marked": "^18.0.11",
+    "marked-highlight": "^2.2.4",
+    "vant": "^4.10.2",
+    "vue": "^3.5.41",
+    "vue-router": "^5.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.2.2"
+  }
+}

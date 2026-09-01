@@ -1,0 +1,41 @@
+# Travelist 前后端分离部署
+#
+# 构建前置(宿主机完成,产物进入镜像):
+#   后端: cd travelist-backend/travelist && mvnw.cmd -s ..\maven-proxy-settings.xml -DskipTests package
+#   前端: cd travelist-frontend && npm run build
+# 启动: docker compose up -d --build
+#
+# 访问:
+#   前端(静态 + /api 代理): http://127.0.0.1:5215
+#   后端直连: http://127.0.0.1:5222
+services:
+  backend:
+    build: ./travelist-backend/travelist
+    container_name: travelist-backend
+    ports:
+      - "5222:5222"
+    environment:
+      # LLM 密钥:透传宿主机系统环境变量 DEEPSEEK_API_KEY(application.yaml 通过 ${DEEPSEEK_API_KEY:} 读取)
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      # LLM 出网配置:默认经宿主机代理(容器内访问 host.docker.internal)
+      # 若宿主机代理不可达,可先用下面的"直连 + 公共 DNS"方案:
+      #   LLM_PROXYHOST: ""
+      #   并在 services.backend.dns 中保留公共 DNS
+      LLM_PROXYHOST: "${LLM_PROXY_HOST:-host.docker.internal}"
+      LLM_PROXYPORT: "${LLM_PROXY_PORT:-7892}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # 容器内部 DNS 优先走公共 DNS,避免宿主机代理(fake-ip)污染 LLM 域名解析
+    dns:
+      - "223.5.5.5"
+      - "119.29.29.29"
+    restart: unless-stopped
+
+  frontend:
+    build: ./travelist-frontend
+    container_name: travelist-frontend
+    ports:
+      - "5215:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
