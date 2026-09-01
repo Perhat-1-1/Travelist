@@ -15,8 +15,8 @@ services:
     ports:
       - "5222:5222"
     environment:
-      # LLM 密钥:透传宿主机系统环境变量 DEEPSEEK_API_KEY(application.yaml 通过 ${DEEPSEEK_API_KEY:} 读取)
-      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      # LLM 密钥:透传宿主机系统环境变量 LLM_API_KEY(通用命名,不绑定厂商;application.yaml 通过 ${LLM_API_KEY:} 读取)
+      LLM_API_KEY: "${LLM_API_KEY:-}"
       # LLM 出网配置:默认经宿主机代理(容器内访问 host.docker.internal)
       # 若宿主机代理不可达,可先用下面的"直连 + 公共 DNS"方案:
       #   LLM_PROXYHOST: ""

@@ -29,12 +29,12 @@ import java.util.function.Consumer;
 /**
  * LLM 调用工具类。
  * <p>
- * 现阶段默认调用 DeepSeek API（OpenAI 兼容），支持两种调用风格，通过 {@code llm.api-style} 配置：
+ * 调用 OpenAI 兼容接口（任意厂商：DeepSeek/OpenAI/Kimi/智谱/本地 Ollama 等，通过 {@code llm.base-url} / {@code llm.model} 切换）。支持两种调用风格，通过 {@code llm.api-style} 配置：
  * <ul>
  *     <li>{@code responses}（默认）：OpenAI Responses API，POST {@code {base-url}/responses}</li>
  *     <li>{@code chat}：OpenAI Chat Completions，POST {@code {base-url}/chat/completions}</li>
  * </ul>
- * 密钥、地址、模型等均配置在 {@code application.yaml} 的 {@code llm.*} 节点下。
+ * 密钥从环境变量 {@code LLM_API_KEY} 读取，地址、模型等均配置在 {@code application.yaml} 的 {@code llm.*} 节点下。
  * <p>
  * 注意：JDK 的 {@link java.net.http.HttpClient} 默认不读取系统代理设置。若本机通过
  * Clash/V2Ray 等代理上网（尤其代理开启了 DNS fake-ip 时），必须在配置中显式指定
@@ -118,7 +118,7 @@ public class LLMUtil
 		}
 		if (this.apiKey.isBlank())
 		{
-			throw new LLMException("未配置 llm.api-key，请在 application.yaml 的 llm.api-key 或环境变量 DEEPSEEK_API_KEY 中配置");
+			throw new LLMException("未配置 llm.api-key，请在 application.yaml 的 llm.api-key 或环境变量 LLM_API_KEY 中配置");
 		}
 		if (STYLE_RESPONSES.equalsIgnoreCase(this.apiStyle))
 		{
@@ -152,7 +152,7 @@ public class LLMUtil
 		}
 		if (this.apiKey.isBlank())
 		{
-			throw new LLMException("未配置 llm.api-key，请在 application.yaml 的 llm.api-key 或环境变量 DEEPSEEK_API_KEY 中配置");
+			throw new LLMException("未配置 llm.api-key，请在 application.yaml 的 llm.api-key 或环境变量 LLM_API_KEY 中配置");
 		}
 		if (STYLE_RESPONSES.equalsIgnoreCase(this.apiStyle))
 		{

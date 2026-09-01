@@ -5,18 +5,18 @@ spring:
 server:
   port: 5222
 
-# LLM 配置（现阶段默认调用 DeepSeek API，OpenAI 兼容）
+# LLM 配置（OpenAI 兼容接口，支持任意厂商：DeepSeek/OpenAI/Kimi/智谱/本地 Ollama 等）
 llm:
-  # 接口地址：DeepSeek OpenAI 兼容接口，也可带 /v1 后缀（如 https://api.deepseek.com/v1）
+  # 接口地址：OpenAI 兼容服务根地址，也可带 /v1 后缀。示例：https://api.deepseek.com
   base-url: https://api.deepseek.com
   # 模型名称：deepseek-v4-flash
   #         deepseek-v4-pro
   #         deepseek-v4-flash-vision-exp
   model: deepseek-v4-flash-vision-exp
-  # API Key：从系统环境变量 DEEPSEEK_API_KEY 读取（不在仓库中保存密钥）。
-  # 设置方式（Windows 持久化）：setx DEEPSEEK_API_KEY sk-xxxx
+  # API Key：从系统环境变量 LLM_API_KEY 读取（通用命名，不绑定厂商；不在仓库中保存密钥）。
+  # 设置方式（Windows 持久化）：setx LLM_API_KEY sk-xxxx
   # 未配置时调用接口会抛出 LLMException 提示
-  api-key: ${DEEPSEEK_API_KEY:}
+  api-key: ${LLM_API_KEY:}
   # 调用风格：responses（默认，OpenAI Responses API，POST /responses）或 chat（Chat Completions，POST /chat/completions）
   api-style: responses
   # 建立连接的超时时间
