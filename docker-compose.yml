@@ -35,7 +35,7 @@ services:
     build: ./travelist-frontend
     container_name: travelist-frontend
     ports:
-      - "5215:80"
+      - "5215:5215"
     depends_on:
       - backend
     restart: unless-stopped
