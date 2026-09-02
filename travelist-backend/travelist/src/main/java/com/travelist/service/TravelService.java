@@ -1,12 +1,19 @@
 package com.travelist.service;
 
+import com.travelist.repository.TravelPlanRepository;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import com.travelist.Util.LLMUtil;
+import com.travelist.entity.TravelPlan;
 import com.travelist.entity.TravelPlanRecommend;
 import com.travelist.validation.TravelRequest;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class TravelService
@@ -55,12 +62,16 @@ public class TravelService
 	@Resource
 	private LLMUtil llmUtil;
 
+	@Resource
+	private TravelPlanRepository travelPlanRepository;
+
 	/**
 	 * 调用 LLM 生成推荐计划并返回结果。
 	 *
 	 * @param request 规划请求(city/days/budget + 可选出行信息)
-	 * @return 解析后的推荐计划
+	 * @return 解析后的推荐计划(已保存到数据库)
 	 */
+	@Transactional
 	public TravelPlanRecommend recommend(TravelRequest request)
 	{
 		String city = request.getCity();
@@ -97,7 +108,68 @@ public class TravelService
 		}
 
 		String llmText = llmUtil.complete(SYSTEM_PROMPT, prompt.toString());
-		return parseRecommend(llmText, city, days, budget);
+		TravelPlanRecommend recommend = parseRecommend(llmText, city, days, budget);
+		return savePlan(request, recommend);
+	}
+
+	/** 保存规划到数据库,并把 planId 回填到结果对象。 */
+	private TravelPlanRecommend savePlan(TravelRequest request, TravelPlanRecommend recommend)
+	{
+		TravelPlan entity = new TravelPlan();
+		entity.setOriginCity(request.getOriginCity());
+		entity.setCity(recommend.getCity());
+		entity.setTripType(request.getTripType());
+		entity.setDepartDate(request.getDepartDate());
+		entity.setReturnDate(request.getReturnDate());
+		entity.setBudget(request.getBudget());
+		entity.setDays(request.getDays());
+		entity.setRequirements(request.getRequirements());
+		try
+		{
+			entity.setPlanJson(objectMapper.writeValueAsString(recommend));
+		}
+		catch (JacksonException e)
+		{
+			throw new IllegalStateException("序列化规划结果失败", e);
+		}
+		entity.setCreatedAt(LocalDateTime.now());
+		travelPlanRepository.save(entity);
+		recommend.setPlanId(entity.getId());
+		return recommend;
+	}
+
+	/** 最近保存的规划列表(元数据,不含完整 JSON)。 */
+	@Transactional(readOnly = true)
+	public List<Map<String, Object>> listPlans()
+	{
+		return travelPlanRepository.findTop10ByOrderByIdDesc().stream()
+		                           .map(p -> Map.<String, Object>of(
+				                           "id", p.getId(),
+				                           "originCity", p.getOriginCity(),
+				                           "city", p.getCity(),
+				                           "days", p.getDays(),
+				                           "tripType", p.getTripType(),
+				                           "budget", p.getBudget(),
+				                           "createdAt", p.getCreatedAt() == null ? "" : p.getCreatedAt().toString()))
+		                           .toList();
+	}
+
+	/** 读取某条保存的规划完整内容。 */
+	@Transactional(readOnly = true)
+	public TravelPlanRecommend getPlan(Long id)
+	{
+		TravelPlan plan = travelPlanRepository.findById(id)
+		                                      .orElseThrow(() -> new IllegalArgumentException("规划不存在: " + id));
+		try
+		{
+			TravelPlanRecommend recommend = objectMapper.readValue(plan.getPlanJson(), TravelPlanRecommend.class);
+			recommend.setPlanId(plan.getId());
+			return recommend;
+		}
+		catch (JacksonException e)
+		{
+			throw new IllegalStateException("读取保存的规划失败: " + id, e);
+		}
 	}
 
 	private TravelPlanRecommend parseRecommend(String llmText, String city, Integer days, Double budget)

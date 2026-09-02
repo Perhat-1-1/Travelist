@@ -1,5 +1,5 @@
 <script setup>
-  import { reactive, ref, computed, nextTick } from 'vue'
+  import { reactive, ref, computed, nextTick, onMounted } from 'vue'
   import { showToast } from 'vant'
 
   // 后端接口(经 Vite 代理转发到 Spring Boot)
@@ -167,6 +167,45 @@
   // ── 规划结果(同页展示,可展开/收起) ──
   const plan = ref(null)
   const showResult = ref(false)
+  const fromHistory = ref(false) // 当前结果是否来自历史记录
+
+  // ── 历史规划(数据库读取,最近 10 条) ──
+  const planHistory = ref([])
+  const historyLoading = ref(false)
+
+  const fmtTime = (iso) => {
+    if (!iso) return ''
+    return String(iso).replace('T', ' ').slice(5, 16)
+  }
+
+  const loadPlanHistory = async () => {
+    historyLoading.value = true
+    try {
+      const res = await fetch('/api/plan/list')
+      const body = await res.json()
+      if (!body.success) throw new Error(body.message)
+      planHistory.value = body.data ?? []
+    } catch {
+      showToast('历史规划加载失败')
+    } finally {
+      historyLoading.value = false
+    }
+  }
+
+  // 打开一条历史规划(整 JSON 从数据库读回)
+  const openHistoryPlan = async (item) => {
+    try {
+      const res = await fetch(`/api/plan/${item.id}`)
+      const body = await res.json()
+      if (!body.success) throw new Error(body.message)
+      plan.value = body.data
+      fromHistory.value = true
+      showResult.value = true
+      scrollToResult()
+    } catch {
+      showToast('历史规划读取失败')
+    }
+  }
 
   const slotLabels = { morning: '上午', afternoon: '下午', evening: '晚间' }
   const budgetItems = [
@@ -210,8 +249,10 @@
         throw new Error(body?.message || `HTTP ${res.status}`)
       }
       plan.value = body.data
+      fromHistory.value = false
       showResult.value = true
       scrollToResult()
+      loadPlanHistory() // 新规划入列(非阻塞)
     } catch (err) {
       const detail = err?.message || '未知错误'
       showToast(`规划失败:${detail}`)
@@ -225,8 +266,11 @@
   const resetPlan = () => {
     plan.value = null
     showResult.value = false
+    fromHistory.value = false
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  onMounted(loadPlanHistory)
 </script>
 
 <template>
@@ -327,6 +371,7 @@
         <h2 class="result-title">
           🗺️ 规划结果 · {{ form.originCity }} → {{ plan.city }} · {{ plan.days }} 天
         </h2>
+        <span v-if="fromHistory" class="history-tag">历史规划</span>
         <van-icon :name="showResult ? 'arrow-up' : 'arrow-down'" class="result-arrow" />
       </div>
 
@@ -402,6 +447,28 @@
           重新规划
         </van-button>
       </div>
+    </div>
+
+    <!-- 历史规划(数据库读取,最近 10 条) -->
+    <div class="history-section">
+      <div class="history-header">
+        <h2 class="history-title">📂 历史规划</h2>
+        <span v-if="historyLoading" class="history-loading">加载中…</span>
+      </div>
+      <van-cell-group inset>
+        <van-cell
+          v-for="item in planHistory"
+          :key="item.id"
+          :title="`${item.originCity || '—'} → ${item.city} · ${item.days} 天`"
+          :label="`预算 ¥${item.budget ?? '—'} · ${fmtTime(item.createdAt)}`"
+          :value="item.tripType === 'round-trip' ? '往返' : '单程'"
+          is-link
+          @click="openHistoryPlan(item)"
+        />
+        <div v-if="!planHistory.length && !historyLoading" class="history-empty">
+          暂无历史规划,生成后自动保存
+        </div>
+      </van-cell-group>
     </div>
 
     <!-- 城市选择(起始城市/目的地共用) -->
@@ -689,6 +756,49 @@
 
   .reset-btn {
     margin-top: 16px;
+  }
+
+  /* ── 历史规划 ── */
+  .history-section {
+    margin: 0 12px 24px;
+    padding: 12px 0 12px;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .history-header {
+    display: flex;
+    align-items: center;
+    margin: 0 12px 8px;
+  }
+
+  .history-title {
+    flex: 1;
+    margin: 0;
+    font-size: 15px;
+    color: var(--text-h);
+  }
+
+  .history-loading {
+    font-size: 12px;
+    color: #969799;
+  }
+
+  .history-empty {
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: #969799;
+  }
+
+  .history-tag {
+    flex-shrink: 0;
+    margin-right: 6px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #fff3e0;
+    color: #ed6a0c;
+    font-size: 11px;
   }
 
   .loading-box {

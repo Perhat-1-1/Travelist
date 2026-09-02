@@ -3,7 +3,6 @@ import HomeView from '@/views/HomeView.vue'
 import PlanView from '@/views/PlanView.vue'
 import AiChatView from '@/views/AiChatView.vue'
 import SpotDetailView from '@/views/SpotDetailView.vue'
-import VantDemo from '@/components/VantDemo.vue'
 
 const router = createRouter({
   // createWebHistory 使用 HTML5 History 模式(URL 不带 #)
@@ -33,13 +32,6 @@ const router = createRouter({
       name: 'spot-detail',
       component: SpotDetailView,
       meta: { title: '景点详情' },
-    },
-    // Vant 组件演示页(不在底部导航中,访问 /demo 查看)
-    {
-      path: '/demo',
-      name: 'demo',
-      component: VantDemo,
-      meta: { title: '组件演示' },
     },
   ],
 })

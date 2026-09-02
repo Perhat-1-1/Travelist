@@ -4,8 +4,10 @@
 
 /**
  * 后端流式聊天请求
- * @param {object}  opts { messages, spotId, onDelta, signal }
+ * @param {object}  opts { messages, spotId, sessionId, onDelta, signal }
+ * @param {Array}   opts.messages  [{ role: 'user'|'assistant', content }] 全量历史
  * @param {number}  [opts.spotId]  景点上下文 id(可选)
+ * @param {number}  [opts.sessionId] 会话 id(可选,缺省后端自动创建)
  * @param {Function} opts.onDelta  (deltaText) => void 每收到一段增量内容时回调
  * @param {AbortSignal} opts.signal 取消信号
  *
@@ -14,11 +16,11 @@
  *   data: {"error":"..."}   流中途出错
  *   data: {"done":true}     结束帧
  */
-export const streamChat = async ({ messages, spotId, onDelta, signal }) => {
+export const streamChat = async ({ messages, spotId, sessionId, onDelta, signal }) => {
   const res = await fetch('/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages, spotId: spotId ?? null }),
+    body: JSON.stringify({ messages, spotId: spotId ?? null, sessionId: sessionId ?? null }),
     signal,
   })
 

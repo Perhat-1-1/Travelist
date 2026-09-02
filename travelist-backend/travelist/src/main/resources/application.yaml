@@ -1,6 +1,15 @@
 spring:
   application:
     name: travelist
+  # MySQL 数据源(本地开发默认连 compose 映射的 3307;Docker 部署由 compose 的 SPRING_DATASOURCE_* 覆盖)
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3307/travelist?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: travelist
+    password: travelist
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
 
 server:
   port: 5222

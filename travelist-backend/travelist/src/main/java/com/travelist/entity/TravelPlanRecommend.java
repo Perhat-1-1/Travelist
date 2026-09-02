@@ -10,6 +10,8 @@ public class TravelPlanRecommend
 	private String                city;
 	private Integer               days;
 	private Double                totalBudget;
+	/** 保存后的规划 id(服务端填充,LLM 不输出该字段) */
+	private Long                  planId;
 	private List<DailyItinerary>  dailyItineraryList;
 	private BudgetBreakdown       budgetBreakdown;
 	private TransportPlan         transportPlan;

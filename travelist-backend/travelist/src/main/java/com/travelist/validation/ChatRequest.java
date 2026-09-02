@@ -20,4 +20,7 @@ public class ChatRequest
 
 	/** 可选:当前查看的景点 id,作为聊天上下文注入。 */
 	private Integer spotId;
+
+	/** 会话 id(前端在发送前确保存在;为空时由后端自动创建会话)。 */
+	private Long sessionId;
 }

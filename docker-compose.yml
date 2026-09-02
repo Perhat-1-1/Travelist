@@ -1,20 +1,51 @@
-# Travelist 前后端分离部署
+# Travelist 前后端分离部署(含 MySQL)
 #
 # 构建前置(宿主机完成,产物进入镜像):
-#   后端: cd travelist-backend/travelist && mvnw.cmd -s ..\maven-proxy-settings.xml -DskipTests package
+#   后端: cd travelist-backend/travelist && .\build.cmd -s ..\maven-proxy-settings.xml -DskipTests package
 #   前端: cd travelist-frontend && npm run build
 # 启动: docker compose up -d --build
 #
 # 访问:
 #   前端(静态 + /api 代理): http://127.0.0.1:5215
 #   后端直连: http://127.0.0.1:5222
+#   MySQL: 127.0.0.1:3307(库 travelist,用户 travelist,密码可经 MYSQL_PASSWORD 覆盖)
+#
+# 环境变量(可选):
+#   LLM_API_KEY    LLM 密钥(必填,否则 AI 功能不可用)
+#   MYSQL_PASSWORD MySQL 密码,默认 travelist
+#   LLM_PROXY_HOST / LLM_PROXY_PORT  LLM 出网代理,默认 host.docker.internal:7892
 services:
+  mysql:
+    image: mysql:8.4
+    container_name: travelist-mysql
+    # 容器内监听端口与宿主机一致(3307)
+    command: ["--port=3307"]
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-travelist-root}"
+      MYSQL_DATABASE: travelist
+      MYSQL_USER: travelist
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-travelist}"
+    ports:
+      - "3307:3307"
+    volumes:
+      - travelist-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -P 3307 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
   backend:
     build: ./travelist-backend/travelist
     container_name: travelist-backend
     ports:
       - "5222:5222"
     environment:
+      # 数据源:指向 compose 内的 mysql 服务(容器内 3307,与宿主机端口一致)
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3307/travelist?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: travelist
+      SPRING_DATASOURCE_PASSWORD: "${MYSQL_PASSWORD:-travelist}"
       # LLM 密钥:透传宿主机系统环境变量 LLM_API_KEY(通用命名,不绑定厂商;application.yaml 通过 ${LLM_API_KEY:} 读取)
       LLM_API_KEY: "${LLM_API_KEY:-}"
       # LLM 出网配置:默认经宿主机代理(容器内访问 host.docker.internal)
@@ -29,6 +60,9 @@ services:
     dns:
       - "223.5.5.5"
       - "119.29.29.29"
+    depends_on:
+      mysql:
+        condition: service_healthy
     restart: unless-stopped
 
   frontend:
@@ -39,3 +73,6 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+volumes:
+  travelist-mysql-data:
